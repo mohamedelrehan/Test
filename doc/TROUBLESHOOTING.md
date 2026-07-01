@@ -1,3 +1,32 @@
+
+## Router enrollment fails with timeout to `publicDnsName:1280`
+
+Symptom from CustomScript output:
+
+```text
+failed to parse JWT
+could not contact remote server [https://<publicDnsName>:1280]
+connect: connection timed out
+```
+
+Cause: old package versions advertised the public controller API as `<publicDnsName>:1280`, while Application Gateway only exposes frontend port 443.
+
+Fixed behavior in this package:
+
+```text
+Bootstrap router enrollment: internal controller endpoint
+Final public ZAC/API address: <publicDnsName>:443
+Application Gateway backend: 1280
+Controller HA: 6262 private
+```
+
+Validation:
+
+```bash
+az network application-gateway frontend-port list -g "$RG" --gateway-name "$APPGW" -o table
+az network application-gateway http-settings list -g "$RG" --gateway-name "$APPGW" -o table
+```
+
 # Troubleshooting
 
 ## ZAC asks for username/password again after successful login
@@ -50,8 +79,8 @@ Correct pattern:
 
 ```text
 advertiseAddress: tls:<controller-name>:6262
-address: <publicDnsName>:1280
-address: <publicDnsName>:1280
+address: <publicDnsName>:443
+address: <publicDnsName>:443
 ```
 
 Live test fix:

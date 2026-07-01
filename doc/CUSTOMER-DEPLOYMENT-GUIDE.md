@@ -22,6 +22,24 @@ For a folder called `deploy`:
 https://raw.githubusercontent.com/<org>/<repo>/main/deploy
 ```
 
+
+## DNS timing
+
+You may deploy before updating public DNS. The deployment bootstraps controllers and enrolls routers through internal Azure networking first. After deployment completes, update DNS:
+
+```text
+<publicDnsName> -> Application Gateway public IP or Azure DNS name
+```
+
+Then validate:
+
+```bash
+curl -k -I https://<publicDnsName>/zac/
+curl -k -s https://<publicDnsName>/version
+```
+
+Do not expose controller cluster port `6262` publicly.
+
 ## 2. Prepare DNS
 
 Choose the public ZAC/API DNS name:

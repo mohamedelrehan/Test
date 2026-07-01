@@ -62,7 +62,7 @@ az network application-gateway http-settings list \
 Expected:
 
 ```text
-Port       1280
+Port       1280 (backend HTTP setting only; public frontend is 443)
 Protocol   Https
 HostName   <publicDnsName>
 CookieAffinity Enabled
@@ -129,8 +129,8 @@ Expected pattern:
 
 ```text
 advertiseAddress: tls:<controller-name>:6262
-address: <publicDnsName>:1280
-address: <publicDnsName>:1280
+address: <publicDnsName>:443
+address: <publicDnsName>:443
 ```
 
 ---
@@ -200,3 +200,19 @@ Validate:
 - Controllers/routers/entities are visible.
 
 The documented HA-auth warning may appear. See `ZAC-HA-WARNING.md`.
+
+
+## Validate public frontend and backend split
+
+```bash
+az network application-gateway frontend-port list -g "$RG" --gateway-name "$APPGW" -o table
+az network application-gateway http-settings list -g "$RG" --gateway-name "$APPGW" --query "[].{Name:name,Port:port,Protocol:protocol,HostName:hostName,CookieAffinity:cookieBasedAffinity}" -o table
+```
+
+Expected:
+
+```text
+Frontend public port: 443
+Backend setting port: 1280
+Cookie affinity: Enabled
+```

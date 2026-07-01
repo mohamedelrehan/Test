@@ -40,7 +40,7 @@ Port `6262` is the controller-to-controller HA/raft/fabric control plane. Exposi
 Enterprise default should be:
 
 ```text
-Public:  443/1280 through Application Gateway to ZAC/API
+Public:  443 through Application Gateway to ZAC/API; backend 1280 to controllers
 Private: 6262 inside VNet only for controller HA
 ```
 
@@ -90,8 +90,8 @@ Expected:
 
 ```text
 advertiseAddress: tls:<controller-name>:6262
-address: <publicDnsName>:1280
-address: <publicDnsName>:1280
+address: <publicDnsName>:443
+address: <publicDnsName>:443
 ```
 
 This is the intended balance of secure private HA plus public one-URL administration.
