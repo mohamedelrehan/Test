@@ -1,0 +1,120 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "deploymentPrefix": {
+      "value": "customer-ziti-ha"
+    },
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "adminPassword": {
+      "value": "REPLACE_WITH_STRONG_LINUX_PASSWORD"
+    },
+    "controllerVmSize": {
+      "value": "Standard_B1s"
+    },
+    "routerVmSize": {
+      "value": "Standard_B1s"
+    },
+    "dnsLabelPrefix": {
+      "value": "customer-ziti-ha"
+    },
+    "adminSourceAddressPrefix": {
+      "value": "*"
+    },
+    "zitiAdminUser": {
+      "value": "admin"
+    },
+    "zitiAdminPassword": {
+      "value": "REPLACE_WITH_STRONG_ZITI_PASSWORD"
+    },
+    "runAptUpgrade": {
+      "value": "true"
+    },
+    "vnetName": {
+      "value": "customer-ziti-ha-vnet"
+    },
+    "vnetAddressPrefix": {
+      "value": "10.97.0.0/16"
+    },
+    "infraSubnetName": {
+      "value": "ziti-ha-infra-subnet"
+    },
+    "infraSubnetPrefix": {
+      "value": "10.97.1.0/24"
+    },
+    "routerSubnetName": {
+      "value": "ziti-ha-router-subnet"
+    },
+    "routerSubnetPrefix": {
+      "value": "10.97.2.0/24"
+    },
+    "controller01Zone": {
+      "value": "1"
+    },
+    "controller02Zone": {
+      "value": "2"
+    },
+    "controller03Zone": {
+      "value": "3"
+    },
+    "router01Zone": {
+      "value": "1"
+    },
+    "router02Zone": {
+      "value": "2"
+    },
+    "router03Zone": {
+      "value": "3"
+    },
+    "artifactBaseUrl": {
+      "value": "https://raw.githubusercontent.com/mohamedelrehan/Test/main"
+    },
+    "artifactSasToken": {
+      "value": ""
+    },
+    "enableEnterpriseHttps": {
+      "value": true
+    },
+    "publicDnsName": {
+      "value": "ziti.customer-domain.com"
+    },
+    "letsEncryptEmail": {
+      "value": "admin@customer-domain.com"
+    },
+    "acmeServer": {
+      "value": "letsencrypt_test"
+    },
+    "keyVaultName": {
+      "value": "customer-ziti-ha-kv"
+    },
+    "keyVaultResourceGroup": {
+      "value": ""
+    },
+    "keyVaultCertificateName": {
+      "value": "customer-ziti-ha-zac-tls"
+    },
+    "keyVaultCertificateAccessObjectId": {
+      "value": ""
+    },
+    "createKeyVault": {
+      "value": true
+    },
+    "certificateMode": {
+      "value": "LetsEncryptGoDaddy"
+    },
+    "godaddyApiKey": {
+      "value": "REPLACE_WITH_GODADDY_API_KEY"
+    },
+    "godaddyApiSecret": {
+      "value": "REPLACE_WITH_GODADDY_API_SECRET"
+    },
+    "godaddyApiKeySecretName": {
+      "value": "godaddy-api-key"
+    },
+    "godaddyApiSecretSecretName": {
+      "value": "godaddy-api-secret"
+    }
+  }
+}
