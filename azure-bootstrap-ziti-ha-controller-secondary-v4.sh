@@ -27,7 +27,7 @@ create_placeholder_config(){
   # use the Application Gateway URL. Keep ctrl.advertiseAddress internal on port 6262
   # for controller-to-controller HA/raft traffic.
   if [[ -n "${PUBLIC_DNS_NAME}" ]]; then
-    sed -i -E "s/address: ${NODE_NAME}:1280/address: ${PUBLIC_DNS_NAME}:1280/g" config.yml
+    sed -i -E "s/address: ${NODE_NAME}:1280/address: ${PUBLIC_DNS_NAME}:443/g" config.yml
   fi
   if ! grep -qE '^cluster:' config.yml; then
     cat >> config.yml <<EOF
@@ -42,7 +42,7 @@ EOF
 }
 enable_zac_spa(){
   cd /var/lib/ziti-controller
-  # Keep controller web address as controller FQDN:1280; only add/repair ZAC SPA binding.
+  # ZAC SPA is served on backend 1280; public clients use Application Gateway 443.
   if [[ -d /opt/openziti/share/console ]]; then
     if ! grep -qE "^[[:space:]]*-[[:space:]]*binding:[[:space:]]*spa" config.yml; then
       sed -i '/^[[:space:]]*#- binding: spa/,+4c\      - binding: spa\n        options:\n          path: zac\n          location: /opt/openziti/share/console\n          indexFile: index.html' config.yml

@@ -95,9 +95,11 @@ keyVaultCertificateName = existing-certificate-name
 
 ---
 
-## DNS Requirement
+## DNS and bootstrap behavior
 
-Create DNS so the public customer name resolves to the Application Gateway public IP or Azure DNS name.
+DNS does **not** have to be updated before the Azure deployment starts. The template intentionally performs router enrollment using the internal controller endpoint first, so provisioning can complete even while the customer's public DNS still points somewhere else.
+
+After deployment succeeds, create or update DNS so the public customer name resolves to the Application Gateway public IP or Azure DNS name.
 
 Example:
 
@@ -134,8 +136,8 @@ The controller config is generated with:
 
 ```text
 ctrl.advertiseAddress  = internal controller name on 6262
-edge.api.address       = publicDnsName on 1280
-web.bindPoints.address = publicDnsName on 1280
+edge.api.address       = publicDnsName on 443
+web.bindPoints.address = publicDnsName on 443
 ```
 
 This keeps HA secure while allowing one public customer URL for ZAC/API.

@@ -152,7 +152,7 @@
       "type": "string",
       "defaultValue": "ziti.example.com",
       "metadata": {
-        "description": "Customer public DNS name for ZAC/API, e.g. ziti.customer.com. This hostname is used by Application Gateway and added to every controller certificate SAN."
+        "description": "Customer public DNS name for ZAC/API, e.g. ziti.customer.com. Final public access uses HTTPS 443 through Application Gateway. DNS can be updated after deployment; router enrollment bootstraps internally first."
       }
     },
     "letsEncryptEmail": {
@@ -295,7 +295,7 @@
     "roleKeyVaultCertificatesOfficer": "a4417e6f-fecd-4de8-b567-7b0420556985",
     "roleKeyVaultSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6",
     "appGatewayWafPolicyName": "[concat(parameters('deploymentPrefix'), '-appgw-waf-policy')]",
-    "artifactQueryString": "[if(empty(parameters('artifactSasToken')), '', concat(variables('artifactQueryString')))]",
+    "artifactQueryString": "[if(empty(parameters('artifactSasToken')), '', concat('?', parameters('artifactSasToken')))]",
     "effectiveKeyVaultResourceGroup": "[if(empty(parameters('keyVaultResourceGroup')), resourceGroup().name, parameters('keyVaultResourceGroup'))]",
     "roleKeyVaultAdministrator": "00482a5a-887f-4fb3-b363-3b7fe8e74483"
   },
@@ -321,7 +321,7 @@
             }
           },
           {
-            "name": "Allow-Controller-1280-Internet-Test",
+            "name": "Allow-Controller-1280-VNet-Only",
             "properties": {
               "priority": 110,
               "direction": "Inbound",
@@ -329,7 +329,7 @@
               "protocol": "Tcp",
               "sourcePortRange": "*",
               "destinationPortRange": "1280",
-              "sourceAddressPrefix": "Internet",
+              "sourceAddressPrefix": "VirtualNetwork",
               "destinationAddressPrefix": "*"
             }
           },

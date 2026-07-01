@@ -46,7 +46,7 @@ create_controller_config(){
   # use the Application Gateway URL. Keep ctrl.advertiseAddress internal on port 6262
   # for controller-to-controller HA/raft traffic.
   if [[ -n "${PUBLIC_DNS_NAME}" ]]; then
-    sed -i -E "s/address: ${C01_HOST}:1280/address: ${PUBLIC_DNS_NAME}:1280/g" config.yml
+    sed -i -E "s/address: ${C01_HOST}:1280/address: ${PUBLIC_DNS_NAME}:443/g" config.yml
   fi
   if ! grep -qE '^cluster:' config.yml; then
     cat >> config.yml <<EOF
@@ -61,11 +61,8 @@ EOF
 enable_zac_spa(){
   cd /var/lib/ziti-controller
 
-  # Keep the controller web listener address as the controller's own FQDN:1280.
-  # OpenZiti validates this address against the controller server certificate SANs.
-  # The public HTTPS FQDN is terminated at Application Gateway and must not be
-  # written into the controller bindPoint address unless it is also in the
-  # controller certificate SAN.
+  # ZAC SPA is served by the controller on backend port 1280.
+  # Public clients access it through Application Gateway on 443.
 
   # Enable ZAC static SPA serving from the real package install path.
   # This fixes /zac/ 404 and prevents JS chunks/assets (for example lottie-web)
@@ -196,6 +193,42 @@ EOS
   /usr/local/bin/ziti-preferred-leader-watchdog.sh || true
 }
 
+
+set_local_edge_address(){
+  local host="$1"
+  cd /var/lib/ziti-controller
+  # Bootstrap-only setting: router enrollment must not depend on customer DNS.
+  # The router JWT generated in this phase points to the internal controller name
+  # reachable from router subnet, while cert SAN already contains the controller name.
+  sed -i -E "s/address: [A-Za-z0-9_.-]+:(443|1280)/address: ${host}:1280/g" config.yml
+  chown ziti-controller:ziti-controller config.yml
+  systemctl restart ziti-controller
+  wait_for ${host}-local-edge "curl -kfsS https://127.0.0.1:1280/version >/dev/null" 60 5
+}
+
+set_public_edge_address_local(){
+  [[ -n "${PUBLIC_DNS_NAME}" ]] || return 0
+  cd /var/lib/ziti-controller
+  # Final production setting: browser/ZAC/API/OIDC advertise the customer FQDN on 443.
+  # Backend remains 1280 behind Application Gateway. Do not alter ctrl.advertiseAddress:6262.
+  sed -i -E "s/address: [A-Za-z0-9_.-]+:(443|1280)/address: ${PUBLIC_DNS_NAME}:443/g" config.yml
+  chown ziti-controller:ziti-controller config.yml
+  systemctl restart ziti-controller
+  wait_for public-edge-local "curl -kfsS https://127.0.0.1:1280/version >/dev/null" 60 5
+}
+
+set_public_edge_address_remote(){
+  local host="$1"
+  [[ -n "${PUBLIC_DNS_NAME}" ]] || return 0
+  ssh_base "$host" "sudo sed -i -E 's/address: [A-Za-z0-9_.-]+:(443|1280)/address: ${PUBLIC_DNS_NAME}:443/g' /var/lib/ziti-controller/config.yml && sudo chown ziti-controller:ziti-controller /var/lib/ziti-controller/config.yml && sudo systemctl restart ziti-controller"
+}
+
+finalize_public_edge_addresses(){
+  set_public_edge_address_local
+  set_public_edge_address_remote "$C02_HOST"
+  set_public_edge_address_remote "$C03_HOST"
+}
+
 create_router_jwt_and_finalize(){
   local router="$1"
   ziti edge login https://127.0.0.1:1280 -u "$ZITI_USER" -p "$ZITI_PWD" -y || true
@@ -216,7 +249,12 @@ main(){
   ship_and_finalize_secondaries
   add_controllers
   install_preferred_leader_watchdog "$C01_HOST" "$C01_HOST" "primary"
+  # Router enrollment is intentionally done using controller01 internal address.
+  # This makes deployment succeed even if the customer has not yet updated public DNS.
+  set_local_edge_address "$C01_HOST"
   for r in "$R01_HOST" "$R02_HOST" "$R03_HOST"; do wait_for ${r}-ssh "nc -z $r 22" 120 5; create_router_jwt_and_finalize "$r"; done
+  # After routers are enrolled, switch all controllers to final public 443 advertised address for ZAC/API/OIDC.
+  finalize_public_edge_addresses
   ziti edge list edge-routers || true
   sudo -u ziti-controller ziti agent cluster list --timeout 60s || true
   cat > /opt/ziti-ha/controller-status.txt <<EOS

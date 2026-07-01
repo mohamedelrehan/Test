@@ -1,3 +1,13 @@
+
+## 2026-07-01 - DNS-independent bootstrap and public port fix
+
+- Fixed router enrollment failure caused by JWTs pointing to `publicDnsName:1280` while Application Gateway exposes only public 443.
+- Router enrollment now uses controller01 internal endpoint during deployment, so customer DNS does not need to be updated before provisioning completes.
+- Final controller ZAC/API/OIDC advertised address now uses `<publicDnsName>:443`.
+- Backend controller service remains on 1280 behind Application Gateway.
+- Controller HA/raft `6262` remains private/internal and is not exposed publicly.
+- Documentation updated for DNS cutover, ZAC HA warning, validation, and troubleshooting.
+
 # Changelog
 
 ## Enterprise HA Reference Package
